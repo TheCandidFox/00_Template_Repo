@@ -10,7 +10,7 @@ if [[ -z "$NEW_REPO_URL" ]]; then
   exit 1
 fi
 
-# Extract repo name
+# Extract repo nameKs
 REPO_NAME=$(basename -s .git "$NEW_REPO_URL")
 if [[ -z "$REPO_NAME" ]]; then
   echo "❌ Error: Invalid URL format. Make sure it ends in .git"
@@ -30,16 +30,20 @@ echo ""
 
 # Check if target folder already exists
 if [[ -d "$TARGET_DIR" ]]; then
-  if [[ "$(ls -A "$TARGET_DIR")" ]]; then
-    echo "❌ Error: Target folder '$REPO_NAME' already exists and is not empty. Aborting to prevent overwrite."
+  # List all items in the folder except .git
+  NON_GIT_CONTENT=$(find "$TARGET_DIR" -mindepth 1 -not -name '.git' -not -path "$TARGET_DIR/.git*" | wc -l)
+
+  if [[ "$NON_GIT_CONTENT" -gt 0 ]]; then
+    echo "❌ Error: Target folder '$REPO_NAME' contains user content. Aborting to prevent overwrite."
     exit 1
   else
-    echo "⚠️ Target folder '$REPO_NAME' exists but is empty. Will proceed."
+    echo "⚠️ Target folder '$REPO_NAME' only contains .git/ (empty repo clone). Proceeding."
   fi
 else
   mkdir "$TARGET_DIR"
   echo "✅ Created folder: $REPO_NAME"
 fi
+
 
 # Copy contents from template repo to new folder (excluding .git)
 shopt -s dotglob  # to include hidden files like .env
